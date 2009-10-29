@@ -1,0 +1,110 @@
+/* BaseClasses/platform/config.hpp.in. */
+
+/* Big or Little Endian */
+#undef WORDS_BIGENDIAN
+
+/* Define to `unsigned' if <sys/types.h> doesn't define.  */
+#undef size_t
+
+/* Define if you have the ANSI C header files.  */
+#undef STDC_HEADERS
+
+/* Define if you can safely include both <sys/time.h> and <time.h>.  */
+#undef TIME_WITH_SYS_TIME
+
+/* Define GNU portable threads */
+#undef HAVE_PTH
+
+#undef HAVE_ACCEPT_SIGNED_INT
+
+#undef HAVE_ACCEPT_UNSIGNED_INT
+
+#undef HAVE_CTIME_R_POSIX
+
+#undef HAVE_CTIME_R_SIZE
+
+#undef HAVE_H_ERRNO
+
+#undef HAVE_MAXDNAME
+
+#undef HAVE_GETHOSTBYNAME_R6
+
+#undef HAVE_GETHOSTBYNAME_R3
+
+#undef HAVE_GETHOSTBYNAME_R5
+
+#undef HAVE_GETHOSTBYNAME
+
+#undef HAVE_HOSTENT
+
+#undef HAVE_USLEEP
+
+#undef HAVE_INET_ATON
+
+#undef HAVE_SETPGRP
+
+#undef HAVE_SETPGRP_2
+
+#undef HAVE_GETPGRP
+
+#undef HAVE_GETPGRP_1
+    
+#undef HAVE_SETSID
+    
+#undef HAVE_MKTEMP
+
+#undef HAVE_MKSTEMP
+
+#undef HAVE_GETWD
+
+#undef HAVE_POSIX_THREAD_CANCEL
+    
+#undef _POSIX_PTHREAD_SEMANTICS
+
+#undef _REENTRANT
+
+#undef _SGIAPI
+
+#undef _THREAD_SAFE
+
+#undef _THREAD_DCE
+
+#undef _POSIX_C_SOURCE
+
+#undef _BSD_TYPES
+
+/* Define if you have the <resolv.h> header file.  */
+#undef HAVE_RESOLV_H
+
+/* Define if you have the <strings.h> header file.  */
+#undef HAVE_STRINGS_H
+
+/* Define if you have the <time.h> header file.  */
+#undef HAVE_TIME_H
+
+/* Define if you have the <unistd.h> header file.  */
+#undef HAVE_UNISTD_H
+
+/* Define if you have the c_r library (-lc_r).  */
+#undef HAVE_LIBC_R
+
+/* Define if you have the cma library (-lcma).  */
+#undef HAVE_LIBCMA
+
+/* Define if you have the compat library (-lcompat).  */
+#undef HAVE_LIBCOMPAT
+
+/* Define if you have the dce library (-ldce).  */
+#undef HAVE_LIBDCE
+
+/* Define if you have the nsl library (-lnsl).  */
+#undef HAVE_LIBNSL
+
+/* Define if you have the pthread library (-lpthread).  */
+#undef HAVE_LIBPTHREAD
+
+/* Define if you have the pthreads library (-lpthreads).  */
+#undef HAVE_LIBPTHREADS
+
+/* Define if you have the socket library (-lsocket).  */
+#undef HAVE_LIBSOCKET

@@ -1,0 +1,36 @@
+(custom-set-variables
+ '(font-lock-auto-fontify t)
+ '(left-margin 4)
+ '(mwheel-follow-mouse t)
+ '(paren-mode (quote sexp) nil (paren))
+ '(font-lock-maximum-decoration t)
+ '(mouse-avoidance-mode nil nil (avoid))
+ '(font-lock-use-colors t)
+ '(column-number-mode nil)
+ '(lazy-shot-mode nil nil (lazy-shot))
+ '(fast-lock-mode nil nil (fast-lock))
+ '(font-lock-use-fonts nil)
+ '(make-backup-files nil)
+ '(zmacs-regions t)
+ '(tab-width 4)
+ '(pending-delete-mode t nil (pending-del))
+ '(truncate-lines t)
+ '(line-number-mode nil)
+ '(user-mail-address "ddoub@microsoft.com" t)
+ '(query-user-mail-address nil)
+ '(indent-tabs-mode nil))
+(custom-set-faces)
+
+(global-set-key 'f6 'indent-region)
+
+(defun my-c-mode-common-hook ()
+  (c-set-style "stroustrup")
+  (setq c-basic-offset 4)
+  ;; (setq c-block-comments-indent-p 4)
+  (setq indent-tabs-mode nil)
+  ;; other customizations can go here
+  )
+
+(add-hook 'c-mode-common-hook 'my-c-mode-common-hook)
+
+(set-buffer-file-coding-system 'undecided-dos)

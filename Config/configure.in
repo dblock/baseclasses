@@ -1,0 +1,349 @@
+#
+#  Configure script for AUTOCONF
+#
+#  © Vestris Inc., Geneva, Switzerland
+#  http://www.vestris.com, 1994-1999 All Rights Reserved
+#  _____________________________________________________
+#
+#  written by Daniel Doubrovkine - dblock@vestris.com
+#
+
+AC_INIT
+
+echo "Running BaseClasses Configuration Script"
+echo "Copyright (c) Vestris Inc., 1994-2001 All Rights Reserved"
+echo "http://www.vestris.com | autoconf scripts by dB. <dblock@vestris.com>"
+
+AC_CHECK_PLATFORM
+AC_GCC_CHECK
+AC_MAKE_CHECK
+AC_EGCS_CHECK
+AC_PROG_MAKE_SET
+AC_C_BIGENDIAN
+AC_CHECK_SIZEOF(int)
+    
+#
+# solaris does not support static linking
+# (http://www.science.uva.nl/pub/solaris/solaris2/Q6.24.html)
+# linux is probably the only really static linkable binary
+#
+if test -n "`echo "$PLATFORM" | grep linux`"; then
+  AC_GCC_SUPPORTS_OPTIONS([static])
+fi
+if test -n "`echo "$PLATFORM" | grep netbsd`"; then
+  AC_GCC_COMPILES(  
+   [#include <pth.h>],
+   [pth_init();],
+   [HAVE_PTH],
+   [for GNU portable threads])
+  AC_GCC_SUPPORTS_OPTIONS([static])
+fi
+    
+if test -z "`echo "$PLATFORM" | grep osf`"; then
+ AC_CHECK_LIB(c_r, main)                                # check for -lc_r
+ AC_CHECK_STATIC_LIB(libc_r.a)
+fi
+
+AC_CHECK_STATIC_LIB_FORCE(libbasecl.a, "force")
+
+AC_CHECK_LIB(compat, main)                              # check for -lcompat
+AC_CHECK_LIB(nsl, main)                                 # check for -lnsl
+AC_CHECK_LIB(pthread, main)                             # check for -lpthread
+AC_CHECK_STATIC_LIBS([libcompat.a libnsl.a])
+
+if test -n "$HAVE_PTH"; then
+ AC_CHECK_STATIC_LIB([libpth.a])
+else
+ AC_CHECK_STATIC_LIB([libpthread.a])
+fi
+
+if test -z "$HAVE_PTH"; then
+ if test -z "`echo "$LIBS" | grep lpthread`"; then
+  AC_CHECK_LIB(pthreads, main)                           # check for -lpthreads
+  AC_CHECK_STATIC_LIB([libpthreads.a])
+  if test -z "`echo "$LIBS" | grep lpthreads`"; then
+    AC_MSG_WARN([no pthread library found, trying DCE])
+    AC_CHECK_LIB(dce, main)                              # check for -ldce (HPUX/DCE)
+    AC_CHECK_LIB(cma, main)                              # check for -lcma (HPUX)
+    AC_CHECK_STATIC_LIBS([libdce.a libcma.a])
+    if test -z "`echo "$LIBS" | grep ldce`"; then    
+     AC_MSG_WARN([neither of PTHREAD nor DCE libraries have been found])
+    else
+     AC_DEFINE(_THREAD_DCE)
+    fi
+  fi
+ fi
+fi
+ 
+AC_CHECK_LIB(socket, main)                              # check for -lsocket
+AC_CHECK_STATIC_LIB([libsocket.a])
+
+# check for static linkage if possible
+
+AC_HEADER_TIME                                          # whether time.h and sys/time.h may both be included
+AC_CHECK_HEADERS(unistd.h time.h strings.h)             # check for available headers
+AC_TYPE_SIZE_T                                          # check whether size_t is defined
+
+#
+# resolv.h can be incompatible with gcc version (untyped function arguments)
+#
+AC_GCC_COMPILES(  
+  [#include <resolv.h>],
+  [],
+  [HAVE_RESOLV_H],
+  [whether resolv.h can be used])
+    
+#
+# setsid and setpgrp
+#
+AC_GCC_LINKS(
+  [#include <unistd.h>],
+  [setsid();],
+  [HAVE_SETSID],
+  [for setsid()])
+
+AC_GCC_LINKS(
+  [#include <unistd.h>],
+  [setpgrp();],
+  [HAVE_SETPGRP],
+  [for setpgrp()])
+
+AC_GCC_LINKS(
+  [#include <unistd.h>],
+  [getpgrp();],
+  [HAVE_GETPGRP],
+  [for getpgrp()])
+
+AC_GCC_LINKS(
+  [#include <unistd.h>],
+  [setpgrp(0, getpid());],
+  [HAVE_SETPGRP_2],
+  [for setpgrp(int, int)])
+
+AC_GCC_LINKS(
+  [#include <unistd.h>],
+  [getpgrp(0);],
+  [HAVE_GETPGRP_1],
+  [for getpgrp(int)])
+
+AC_GCC_LINKS(
+  [#include <unistd.h>],
+  [char * pPath = getwd(NULL);],
+  [HAVE_GETWD],
+  [for getwd()])
+
+#
+# mkstemp() is safer than mktemp
+# mktemp() is safer than tmpnam
+#
+
+AC_GCC_LINKS(
+  [#include <unistd.h>],
+  [mkstemp("/tmp/foo.XXXX");],
+  [HAVE_MKSTEMP],
+  [for mkstemp()])
+
+AC_GCC_LINKS(
+  [#include <unistd.h>],
+  [mktemp("/tmp/foo.XXXX");],
+  [HAVE_MKTEMP],
+  [for mktemp()])
+ 
+#
+# h_errno is sometimes linked but not defined
+#
+
+AC_GCC_COMPILES(  
+  [#include <netdb.h>],
+  [if (h_errno == 0);],
+  [HAVE_H_ERRNO],
+  [whether h_errno is defined in <netdb.h>])
+
+# MAXDNAME is missing for resolve.h ?
+AC_GCC_COMPILES(
+  [#include <netdb.h>
+   #include <resolv.h>],
+  [if (MAXDNAME == MAXDNAME);],
+  [HAVE_MAXDNAME],
+  [whether MAXDNAME is defined with <resolv.h>])
+
+#
+# reentrant versions of gethostbyname_r
+#
+
+AC_GCC_COMPILES(
+  [#include <netdb.h>],
+  [
+   char *name;
+   struct hostent *he;
+   struct hostent_data data;
+   (void) gethostbyname_r(name, he, &data);
+  ],[HAVE_GETHOSTBYNAME_R3],
+  [for gethostbyname_r(3)])
+
+ if test -z "$HAVE_GETHOSTBYNAME_R3"; then
+
+ AC_GCC_COMPILES(
+   [#include <netdb.h>],
+   [
+    char *name;
+    struct hostent *he, *res;
+    char buffer[2048];
+    int buflen = 2048;
+    int h_errnop;
+    (void) gethostbyname_r(name, he, buffer, buflen, &res, &h_errnop);
+   ],[HAVE_GETHOSTBYNAME_R6],
+   [for gethostbyname_r(6)])
+
+  if test -z "$HAVE_GETHOSTBYNAME_R6"; then
+    
+  AC_GCC_COMPILES(
+    [#include <netdb.h>],
+    [
+      char *name;
+      struct hostent *he;
+      char buffer[2048];
+      int buflen = 2048;
+      int h_errnop;
+      (void) gethostbyname_r(name, he, buffer, buflen, &h_errnop);
+    ],[HAVE_GETHOSTBYNAME_R5],
+    [for gethostbyname_r(5)])
+    
+    if test -z "$HAVE_GETHOSTBYNAME_R5"; then
+    
+    AC_GCC_COMPILES(
+      [#include <netdb.h>],
+      [
+        char *name;
+        struct hostent *he;
+        he = gethostbyname(name);
+    ],[HAVE_GETHOSTBYNAME],
+    [for gethostbyname()])
+ 
+    fi
+  fi
+ fi
+
+#
+# check for sethostent and endhostent
+#
+
+AC_GCC_COMPILES(
+  [#include <netdb.h>],
+  [
+   sethostent(1);
+   endhostent();
+  ],[HAVE_HOSTENT],
+  [for sethostent() and endhostent()])
+    
+# 
+# a fatal error can be issued at ctime_r(time_t *, char *, [int])
+# because of the optional [int]
+#
+AC_GCC_LINKS(
+  [#define _POSIX_PTHREAD_SEMANTICS
+   #include <time.h>],
+  [ctime_r((time_t *) 0, (char *) 0, 0)],
+  [HAVE_CTIME_R_SIZE],
+  [whether ctime_r() and asctime_r() require a buffer size])
+
+if test -z "$HAVE_CTIME_R_SIZE"; then
+ AC_GCC_LINKS(
+  [#define _POSIX_PTHREAD_SEMANTICS
+   #include <time.h>],
+  [ctime_r((time_t *) 0, (char *) 0)],
+  [HAVE_CTIME_R_POSIX],
+  [whether ctime_r() and asctime_r are POSIX])
+fi
+
+#
+# a fatal error can be issued with a wrong typecast for the
+# third parameter of accept()
+#
+
+AC_GCC_COMPILES(
+  [#include <sys/types.h>
+   #include <sys/socket.h>],
+  [accept(0, (struct sockaddr *) 0, (int *) 0)],
+  [HAVE_ACCEPT_SIGNED_INT],
+  [whether accept() compiles with (int *)])
+
+if test -z "$HAVE_ACCEPT_SIGNED_INT"; then
+ AC_GCC_COMPILES(
+   [#include <sys/types.h>
+    #include <sys/socket.h>],
+   [accept(0, (struct sockaddr *) 0, (unsigned int *) 0)],
+   [HAVE_ACCEPT_UNSIGNED_INT],
+   [whether accept() compiles with (unsigned int *)])
+fi
+
+AC_GCC_LINKS(
+   [#include <sys/socket.h>
+    #include <netinet/in.h>
+    #include <arpa/inet.h>],
+   [sockaddr_in Peer;
+    inet_aton((const char *) NULL, & Peer.sin_addr)],
+   [HAVE_INET_ATON],
+   [whether inet_aton() can be linked])
+
+#
+# usleep() can be omitted because it's not POSIX, but it often
+# links and is apparently reentrant and thread safe 
+#
+
+AC_GCC_LINKS(
+  [#include <unistd.h>],
+  [usleep(1);],
+  [HAVE_USLEEP],
+  [whether usleep() can be linked])
+
+#
+# pthread_mutexattr_settype or pthread_mutexattr_setkind_np
+#
+
+if test -z "$HAVE_PTH"; then
+ AC_GCC_LINKS(
+   [#include <pthread.h>],
+   [
+    pthread_t ThreadID = 0;
+    pthread_cancel(ThreadID);
+   ],
+   [HAVE_POSIX_THREAD_CANCEL],
+   [for pthread_cancel])
+fi
+
+if test -z "$HAVE_PTH"; then
+ AC_GCC_LINKS(
+   [#include <pthread.h>],
+   [pthread_mutexattr_t attr;
+    pthread_mutexattr_init(&attr);
+    pthread_mutexattr_destroy(&attr)],
+   [HAVE_POSIX_THREAD_MUTEX_ATTR],
+   [for pthread_mutexattr_t])
+ 
+ if test "$HAVE_POSIX_THREAD_MUTEX_ATTR"; then
+  AC_GCC_LINKS(
+   [#include <pthread.h>],
+   [pthread_mutexattr_settype(NULL, PTHREAD_MUTEX_RECURSIVE_NP)],
+   [HAVE_POSIX_THREAD_MUTEX_ATTR_SETTYPE],
+   [for pthread_mutexattr_settype()])
+
+  if test -z "$HAVE_POSIX_THREAD_MUTEX_ATTR_SETTYPE"; then
+   AC_GCC_LINKS(
+    [#include <pthread.h>],
+    [pthread_mutexattr_setkind_np(NULL, PTHREAD_MUTEX_RECURSIVE_NP)],
+    [HAVE_POSIX_THREAD_MUTEX_ATTR_SETKIND_NP],
+    [for pthread_mutexattr_setkind_np()])
+  fi
+ fi
+fi
+
+AC_GCC_SUPPORTS_OPTIONS([fno-exceptions fno-handle-exceptions])                        # exceptions
+AC_GCC_SUPPORTS_OPTIONS([fguiding-decls fomit-frame-pointer fno-implicit-templates])   # templates
+AC_GCC_SUPPORTS_OPTIONS([felide-constructors fnonnull-objects])                        # objects and constructors
+AC_GCC_SUPPORTS_OPTIONS([Wall Wno-uninitialized Wno-deprecated])                       # warnings
+AC_GCC_SUPPORTS_OPTIONS_EXCLUSIVE([O3 O2 O1])                                          # optimizations
+
+AC_CONFIG_HEADER(platform/config.hpp)
+AC_OUTPUT(Makefile Makefile.each bin/Makefile)
+

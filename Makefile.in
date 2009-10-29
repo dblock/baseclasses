@@ -1,0 +1,43 @@
+LIBNAME = basecl
+DIRS =  BitSet                                  \
+        FileSystem                              \
+        String                                  \
+        HashTable                               \
+        Internet                                \
+        Mutex                                   \
+        Thread                                  \
+        Date                                    \
+        Io                                      \
+        Object                                  \
+        Tree                                    \
+        Email                                   \
+        List                                    \
+        RegExp                                  \
+        Vector                                  \
+        Encryption                              \
+        Server                                  \
+        File                                    \
+        Socket					\
+        Virtual                                 \
+        Security				\
+	SwapVector
+
+PWD = $(shell pwd)
+OBJ = obj
+LIB = @libdir@
+AR = ar
+RANLIB = ranlib
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+
+all debug:
+	@for I in $(DIRS); do cd $(PWD)/$$I; @MAKE@ -f ../Makefile.each $@ || exit 1; cd $(PWD); done
+	-@mkdir $(LIB)
+	-@rm -f $(LIB)/lib$(LIBNAME).a
+	$(AR) rc $(LIB)/lib$(LIBNAME).a $(OBJ)/*
+	$(RANLIB) $(LIB)/lib$(LIBNAME).a 
+
+clean: cleanup all
+
+cleanup:
+	-@rm $(OBJ)/*
